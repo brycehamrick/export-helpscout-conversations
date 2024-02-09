@@ -13,6 +13,7 @@
 .byebug_history
 .redcar/
 .sass-cache
+config.yml
 /config/config.yml
 /coverage.data
 /coverage/

@@ -1,0 +1,16 @@
+# config.yml
+database:
+  host: '127.0.0.1'
+  port: 27017
+  name: 'helpscout'
+gorgias_api:
+  api_key: ''
+  username: ''
+  url: 'https://youracct.gorgias.com/api'
+helpscout_api:
+  url: 'https://api.helpscout.net/v2'
+  api_token: ''
+  mailboxes: ''
+rate_limit:
+  requests: 100
+  interval: 60
