@@ -7,6 +7,7 @@ gorgias_api:
   api_key: ''
   username: ''
   url: 'https://youracct.gorgias.com/api'
+  valid_users: ''
 helpscout_api:
   url: 'https://api.helpscout.net/v2'
   api_token: ''
