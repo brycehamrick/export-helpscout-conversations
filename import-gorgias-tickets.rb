@@ -108,53 +108,6 @@ end
 
 # Start the script
 
-# test a gorgias API call
-ticket = {
-  :channel => 'api',
-  :created_datetime => '2024-02-05T14:42:00.384938',
-  :customer => { :email => 'bryce@rubus.ltd' },
-  :external_id => '12347',
-  :status => "open",
-  :subject => "Agent Message Test 2",
-  :updated_datetime => '2024-02-05T15:42:00.384938',
-  :from_agent => true,
-  :messages => [
-      {
-        :body_html => "Hello,<br><br>        This is a new message<br><br>        Megan",
-        :body_text => "Hello,\n\n        This is a new message\n\n        Megan",
-        :subject => "Agent Message Test 2",
-        :channel => "api",
-        :created_datetime => '2024-02-05T14:42:00.384938',
-        :sent_datetime => '2024-02-05T14:42:00.384938',
-        :from_agent => true,
-        :message_id => "<1210577922@web>",
-        :via => 'api',
-        :sender => { :email => 'megan@drbrighten.com' },
-        :receiver => { :email => 'bryce@rubus.ltd' },
-      },
-      {
-        :body_html => "Hola,<br><br>This is my response.<br><br> Bryce ",
-        :body_text => "Hola,\n\nThis is my response.\n\n Bryce ",
-        :subject => "Re: Agent Message Test 2",
-        :channel => "api",
-        :created_datetime => '2024-02-05T15:42:00.384938',
-        :sent_datetime => '2024-02-05T15:42:00.384938',
-        :from_agent => false,
-        :message_id => "<1210577955@web>",
-        :via => 'api',
-        :sender => { :email => 'bryce@rubus.ltd' },
-      }
-    ],
-  :tags => [
-      {
-        :name => "helpscout"
-      }
-    ],
-}
-# tickets = gorgias_request('tickets', method: :post, payload: ticket.to_json)
-# puts tickets
-# exit
-
 query = {
   '$and' => [
     {
