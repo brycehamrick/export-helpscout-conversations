@@ -32,6 +32,36 @@ required_config_paths.each do |path|
   end
 end
 
+class NilClass
+  def blank?
+    true
+  end
+
+  def present?
+    !blank?
+  end
+end
+
+class String
+  def blank?
+    self.strip.empty?
+  end
+
+  def present?
+    !blank?
+  end
+
+  def self.to_bool(str)
+    return true if str == true || str =~ (/^(true|t|yes|y|1)$/i)
+    return false if str == false || str.blank? || str =~ (/^(false|f|no|n|0)$/i)
+    raise ArgumentError.new("invalid value for Boolean: \"#{str}\"")
+  end
+
+  def to_bool
+    String.to_bool(self)
+  end
+end
+
 API_URL = config['gorgias_api']['url']
 API_KEY = config['gorgias_api']['api_key']
 GORGIAS_USER = config['gorgias_api']['username']
@@ -91,10 +121,7 @@ def gorgias_request(path, method: :get, payload: nil, retry_limit: 3)
       retry
     else
       puts "Failed to connect after #{retry_limit} attempts."
-      # Decide how to handle the ultimate failure. For example, you could:
-      # - return nil or a default value
-      # - raise a custom exception
-      # - log the error for further investigation
+      return nil
     end
   end
 end
@@ -163,7 +190,8 @@ conversations_cursor.each do |conv|
 
   messages = []
   conv["threads"].each do |thread|
-    if thread['body']
+    t_created_by_email = thread.dig("createdBy", "email")
+    unless thread['body'].to_s.empty? || t_created_by_email.to_s.empty?
       message = {
         :body_html => thread['body'],
         :body_text => thread['body'].gsub(/<\/?[^>]*>/, ""),
@@ -174,7 +202,6 @@ conversations_cursor.each do |conv|
         :message_id => "<" + thread["id"].to_s + "@web>",
         :via => 'api',
       }
-      t_created_by_email = thread.dig("createdBy", "email")
       if thread["createdBy"]["type"] == "customer"
         message["sender"] = { :email => t_created_by_email }
         message["from_agent"] = false
@@ -189,10 +216,27 @@ conversations_cursor.each do |conv|
     end
   end
 
+  if messages.empty?
+    next
+  end
+
   ticket[:messages] = messages
   
   g_req = gorgias_request('tickets', method: :post, payload: ticket.to_json)
-  g_ticket = JSON.parse(g_req)
+  if g_req.nil?
+    next
+  end
+
+  begin
+    g_ticket = JSON.parse(g_req)
+  rescue JSON::ParserError
+    next
+  end
+
+  if g_ticket["error"]
+    puts g_ticket
+    next
+  end
   if g_ticket["id"]
     conversations_collection.update_one({ _id: conv['_id'] }, { '$set' => { gorgias_id: g_ticket["id"] } })
     puts conv["number"].to_s + " = " + g_ticket["id"].to_s
