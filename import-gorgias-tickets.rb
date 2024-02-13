@@ -51,7 +51,7 @@ def base_header(hdrs={})
   }.merge(hdrs)
 end
 
-def gorgias_request(path, method: :get, payload: nil)
+def gorgias_request(path, method: :get, payload: nil, retry_limit: 3)
   check_rate_limit
 
   full_url = "#{API_URL}/#{path}"
@@ -74,14 +74,29 @@ def gorgias_request(path, method: :get, payload: nil)
     options[:headers].merge!(content_type: :json)
   end
 
-  # Execute the request
-  response = RestClient::Request.execute(options)
+  attempts = 0
+  begin
+    # Execute the request
+    response = RestClient::Request.execute(options)
 
-  # Return the response body
-  response.body
-rescue RestClient::ExceptionWithResponse => e
-  # Handle HTTP errors
-  e.response
+    # Return the response body
+    response.body
+  rescue RestClient::ExceptionWithResponse => e
+    # Handle HTTP errors
+    e.response
+  rescue Errno::ECONNRESET => e
+    attempts += 1
+    if attempts <= retry_limit
+      puts "Connection reset by peer, retrying... (Attempt #{attempts} of #{retry_limit})"
+      retry
+    else
+      puts "Failed to connect after #{retry_limit} attempts."
+      # Decide how to handle the ultimate failure. For example, you could:
+      # - return nil or a default value
+      # - raise a custom exception
+      # - log the error for further investigation
+    end
+  end
 end
 
 def check_rate_limit
